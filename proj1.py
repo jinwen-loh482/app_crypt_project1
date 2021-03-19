@@ -1,5 +1,5 @@
 import argparse
-from ic_attack import ic_attack, ic_attack_key, ic_attack_random_insert
+from ic_attack import ic_attack, ic_attack_random_insert
 from generic_unique_shift_attack import unique_shift_attack
 # from test_suite import encrypt_every_t
 
