@@ -1,6 +1,7 @@
 import numpy as np
 import random
-# import sys
+import sys
+import difflib
 
 p1 = "cabooses meltdowns bigmouth makework flippest neutralizers " + \
                "gipped mule antithetical imperials carom masochism stair retsina " + \
@@ -66,7 +67,7 @@ dict2 = [
 
 test_list = [p1, p2, p3, p4, p5]
 
-def build_plaintext(target_length, mydict2=dict2):
+def build_plaintext(target_length=500, mydict2=dict2):
     p = ""
     while True:
         word = random.randint(0, len(mydict2)-1)
@@ -145,28 +146,28 @@ def calc_cipher_ic(cipher):
     return ic_bar
 
 # Generates the average distribution of letters of the dictionary and test1 plaintexts,
-def statistical_test(test1_list, dict2, iters=5):
-    target_length = 500;
+def statistical_test(L, test1_list, dict2):
+    target_length = L;
     freq_list = [0] * 27
     freq_dict = {}
     n = 0;
-    for i in range(0, iters):
+    for i in range(0, len(test1_list)):
         pt = build_plaintext(target_length, dict2)
         n += target_length
         temp = reshape_cipher(to_numpy_mat(pt), 1)
         for col in range(0, temp.shape[1]):
             current = temp[:, col]
-            unique, counts = np.unique(current, return_counts = True)
+            unique, counts = np.unique(current, return_counts=True)
             freq_dict = dict(zip(unique, counts))
         for letter in freq_dict.keys():
             freq_list[int(letter)] += freq_dict[letter]
     # get freq for test1 pt
     for i in test1_list:
-        n += target_length
+        n += len(i)
         temp = reshape_cipher(to_numpy_mat(i), 1)
         for col in range(0, temp.shape[1]):
             current = temp[:, col]
-            unique, counts = np.unique(current, return_counts = True)
+            unique, counts = np.unique(current, return_counts=True)
             freq_dict = dict(zip(unique, counts))
         for letter in freq_dict.keys():
             freq_list[int(letter)] += freq_dict[letter]
@@ -177,10 +178,10 @@ def statistical_test(test1_list, dict2, iters=5):
 
 # Generates the distribution of letters of the dictionary and test1 plaintexts, and average the distribution
 # by iters, where iters is usually 1000
-def generate_big_distribution(iters, dict2, test1_list):
+def generate_big_distribution(iters, L, dict2, test1_list):
     average_dist = [0]*27
     for i in range(0, iters):
-        temp = statistical_test(test1_list, dict2)
+        temp = statistical_test(L, test1_list, dict2)
         average_dist[:] = [i + j for i, j in zip(average_dist, temp)]
     average_dist[:] = [round(i / iters, 6) for i in average_dist]
     return average_dist
@@ -235,9 +236,78 @@ def error_num(m, m_prime):
             count += 1
     return count
 
+def match_in_dictionary(words, i, test2_dict):
+    change = False
+    max_dict_word = max([len(word) for word in test2_dict])
+    min_dict_word = min([len(word) for word in test2_dict])
+
+    if len(words[i]) < min_dict_word:
+        # add with next word
+        words[i] = words[i] + 'x' + words[i + 1]
+        del words[i + 1]
+        change = True
+    elif len(words[i]) > max_dict_word:
+        # split word with space
+        words[i + 1] = words[i][max_dict_word:] + words[i + 1]
+        words[i] = words[i][:max_dict_word]
+        change = True
+    else:
+        cwords = difflib.get_close_matches(words[i], test2_dict)
+        if not cwords:
+            half_word = words[i][:int(len(words[i])/2)]
+            cwords = difflib.get_close_matches(half_word, test2_dict)
+        if cwords:
+            lenw = len(words[i])
+            lenc = len(cwords[0])
+            if lenc > lenw:
+                # include next word
+                words[i] = words[i] + 'x' + words[i + 1]
+                del words[i + 1]
+                change = True
+            elif lenc < lenw:
+                # push rest to next word
+                words[i + 1] = words[i][lenc:] + words[i + 1]
+                words[i] = cwords[0]
+                change = True
+            else:
+                words[i] = cwords[0]
+        # if no words match after trying to split the word, move on
+
+    return words, change
+
+def fix_last_word(word, test2_dict):
+    cwords = difflib.get_close_matches(word, test2_dict)
+    if cwords:
+        return cwords[0]
+    else:
+        return word
+
+
+def fit_to_dictionary(m_prime, L, test2_dict):
+    bad = True
+    change = False
+    words = m_prime.split(' ')
+    while bad:
+        for i in range(len(words)):
+            if (i + 1) == len(words):
+                words[i] = fix_last_word(words[i], test2_dict)
+                bad = False
+            elif words[i] not in dict2:
+                words, change = match_in_dictionary(words, i, test2_dict)
+                if change:
+                    words = ' '.join(words).split(' ')
+                    change = False
+                    break
+    m_prime_prime = ' '.join(words)[:L]
+    m_prime_prime_length = len(m_prime_prime)
+    if m_prime_prime_length < L:
+        m_prime_prime = m_prime_prime + m_prime[m_prime_prime_length - L:]
+    return m_prime_prime
+
+
 # given a ciphertext, run an index of coincidence attack to predict the plaintext.
-def ic_attack(ciphertext, test2_dict=dict2, test1_list=test_list):
-    letter_dist = generate_big_distribution(1000, test2_dict, test1_list)
+def ic_attack(ciphertext, L=500, test2_dict=dict2, test1_list=test_list):
+    letter_dist = generate_big_distribution(1000, L, test2_dict, test1_list)
     cipher = to_numpy_mat(ciphertext)
 
     ic_list = []
@@ -250,10 +320,11 @@ def ic_attack(ciphertext, test2_dict=dict2, test1_list=test_list):
     key = find_key(cipher, letter_dist, key_length)
     key = [reverse_translate(i) for i in key]
     m_prime = decrypt(ciphertext, key)
+    m_prime = fit_to_dictionary(m_prime, L, test2_dict)
     return m_prime
 
-def ic_attack_key(ciphertext, test2_dict=dict2, test1_list=test_list):
-    letter_dist = generate_big_distribution(1000, test2_dict, test1_list)
+def ic_attack_key(ciphertext, L=500, test2_dict=dict2, test1_list=test_list):
+    letter_dist = generate_big_distribution(1000, L, test2_dict, test1_list)
     cipher = to_numpy_mat(ciphertext)
 
     ic_list = []
@@ -265,16 +336,38 @@ def ic_attack_key(ciphertext, test2_dict=dict2, test1_list=test_list):
 
     key = find_key(cipher, letter_dist, key_length)
     key = [reverse_translate(i) for i in key]
+    m_prime = decrypt(ciphertext, key)
+    m_prime = fit_to_dictionary(m_prime, L, test2_dict)
     print(key)
-    m_prime = decrypt(ciphertext, key)
     return m_prime
 
+def ic_attack_random_insert(ciphertext, L=500, test2_dict=dict2, test1_list=test_list):
+    message_pp = ic_attack(ciphertext, L, test2_dict, test1_list)
+    ciphertext_pp = ciphertext
+    insertions = len(ciphertext) - L
+    max_executions = 20
+    for insertion in range(min(max_executions, insertions)):
+        words = message_pp.split(' ')
+        bad_index = -1
+        for i in range(len(words)):
+            # if a bad word exists, compute bad_index
+            if words[i] not in test2_dict and (i + 1) != len(words):
+                if words[i + 1] not in test2_dict:
+                    bad_index = sum([len(word) for word in words[:i]]) + i
+                    break
+        if bad_index == -1:
+            # if no bad_index, exit
+            return message_pp
+        else:
+            # skip bad index and recompute ic attack
+            ciphertext_pp = ciphertext_pp[:bad_index] + ciphertext_pp[bad_index + 1:]
+            message_pp = ic_attack(ciphertext_pp, L, test2_dict, test1_list)
+    
+    # remove remainder insertions and run ic_attack one last time (r > 20)
+    insertions_left_over = len(ciphertext_pp) - L
+    if insertions_left_over > 0:
+        for insertions in range(insertions_left_over):
+            ciphertext_pp = ciphertext_pp[:bad_index] + ciphertext_pp[bad_index + 1:]
+        message_pp = ic_attack(ciphertext_pp, L, test2_dict, test1_list)
 
-
-
-
-
-
-
-
-
+    return message_pp
