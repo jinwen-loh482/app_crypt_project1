@@ -307,7 +307,7 @@ def fit_to_dictionary(m_prime, L, test2_dict):
 
 # given a ciphertext, run an index of coincidence attack to predict the plaintext.
 def ic_attack(ciphertext, L=500, test2_dict=dict2, test1_list=test_list):
-    letter_dist = generate_big_distribution(1000, L, test2_dict, test1_list)
+    letter_dist = generate_big_distribution(100, L, test2_dict, test1_list)
     cipher = to_numpy_mat(ciphertext)
 
     ic_list = []
@@ -324,7 +324,7 @@ def ic_attack(ciphertext, L=500, test2_dict=dict2, test1_list=test_list):
     return m_prime
 
 def ic_attack_key(ciphertext, L=500, test2_dict=dict2, test1_list=test_list):
-    letter_dist = generate_big_distribution(1000, L, test2_dict, test1_list)
+    letter_dist = generate_big_distribution(100, L, test2_dict, test1_list)
     cipher = to_numpy_mat(ciphertext)
 
     ic_list = []
