@@ -9,7 +9,7 @@ message_4 = "leonardo oxygenate cascade fashion fortifiers annelids co intimates
 message_5 = "undercurrents laryngeal elevate betokened chronologist ghostwrites ombres dollying airship probates music debouching countermanded rivalling linky wheedled heydey sours nitrates bewares rideable woven rerecorded currie vasectomize mousings rootstocks langley propaganda numismatics foetor subduers babcock jauntily ascots nested notifying mountainside dirk chancellors disassociating eleganter radiant convexity appositeness axonic trainful nestlers applicably correctional stovers organdy bdrm insis"
 test_list = [message_1, message_2, message_3, message_4, message_5]
 
-test2_dict = [
+dict2 = [
         "awesomeness",
         "hearkened",
         "aloneness",
@@ -192,9 +192,10 @@ def compute_unique_shifts_with_insertion(ciphertext, text, L=500):
     return numerator/denominator
 
 
-def unique_shift_attack(ciphertext, message_pp, L=500, test1_list=test_list):
+def unique_shift_attack(ciphertext, message_pp, L=500, test2_dict=dict2, test1_list=test_list):
     bad = 0
     words = message_pp.split(' ')
+    # check how many words are bad in the ic_attack message
     for i in range(len(words)):
             if words[i] not in test2_dict and (i + 1) != len(words):
                 bad = bad + 1
