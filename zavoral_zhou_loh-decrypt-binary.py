@@ -1,6 +1,6 @@
 import argparse
-from ic_attack import ic_attack, ic_attack_random_insert
-from generic_unique_shift_attack import unique_shift_attack
+from zavoral_zhou_loh_decrypt_source.ic_attack import ic_attack, ic_attack_random_insert
+from zavoral_zhou_loh_decrypt_source.generic_unique_shift_attack import unique_shift_attack
 # from test_suite import encrypt_every_t
 
 def main():
@@ -136,7 +136,7 @@ def main():
 
     # Change
     message_pp = ic_attack_random_insert(ciphertext, L, test2_dict, test1_list)
-    print(unique_shift_attack(ciphertext, message_pp, L, test1_list))
+    print(unique_shift_attack(ciphertext, message_pp, L, test2_dict, test1_list))
 
 if __name__ == "__main__":
     main()
