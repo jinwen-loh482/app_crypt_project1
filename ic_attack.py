@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import sys
 import difflib
 
 p1 = "cabooses meltdowns bigmouth makework flippest neutralizers " + \
@@ -345,7 +344,7 @@ def ic_attack_random_insert(ciphertext, L=500, test2_dict=dict2, test1_list=test
     message_pp = ic_attack(ciphertext, L, test2_dict, test1_list)
     ciphertext_pp = ciphertext
     insertions = len(ciphertext) - L
-    max_executions = 20
+    max_executions = 5
     for insertion in range(min(max_executions, insertions)):
         words = message_pp.split(' ')
         bad_index = -1

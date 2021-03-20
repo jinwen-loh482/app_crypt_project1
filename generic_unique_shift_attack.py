@@ -9,6 +9,49 @@ message_4 = "leonardo oxygenate cascade fashion fortifiers annelids co intimates
 message_5 = "undercurrents laryngeal elevate betokened chronologist ghostwrites ombres dollying airship probates music debouching countermanded rivalling linky wheedled heydey sours nitrates bewares rideable woven rerecorded currie vasectomize mousings rootstocks langley propaganda numismatics foetor subduers babcock jauntily ascots nested notifying mountainside dirk chancellors disassociating eleganter radiant convexity appositeness axonic trainful nestlers applicably correctional stovers organdy bdrm insis"
 test_list = [message_1, message_2, message_3, message_4, message_5]
 
+test2_dict = [
+        "awesomeness",
+        "hearkened",
+        "aloneness",
+        "beheld",
+        "courtship",
+        "swoops",
+        "memphis",
+        "attentional",
+        "pintsized",
+        "rustics",
+        "hermeneutics",
+        "dismissive",
+        "delimiting",
+        "proposes",
+        "between",
+        "postilion",
+        "repress",
+        "racecourse",
+        "matures",
+        "directions",
+        "pressed",
+        "miserabilia",
+        "indelicacy",
+        "faultlessly",
+        "chuted",
+        "shorelines",
+        "irony",
+        "intuitiveness",
+        "cadgy",
+        "ferries",
+        "catcher",
+        "wobbly",
+        "protruded",
+        "combusting",
+        "unconvertible",
+        "successors",
+        "footfalls",
+        "bursary",
+        "myrtle",
+        "photocompose"
+    ]
+
 def translate(t):
     # get characters as numbers 1-27
     if t == " ":
@@ -150,5 +193,12 @@ def compute_unique_shifts_with_insertion(ciphertext, text, L=500):
 
 
 def unique_shift_attack(ciphertext, message_pp, L=500, test1_list=test_list):
-    test1_list.append(message_pp)
+    bad = False
+    words = message_pp.split(' ')
+    for i in range(len(words)):
+            # if a bad word exists, compute bad_index
+            if words[i] not in test2_dict and (i + 1) != len(words):
+                bad = True
+    if not bad:
+        test1_list.append(message_pp)
     return min([(plaintext, compute_unique_shifts_with_insertion(ciphertext, plaintext, L)) for plaintext in test1_list], key=lambda x: x[1])[0]
