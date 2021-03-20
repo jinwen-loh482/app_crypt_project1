@@ -199,6 +199,6 @@ def unique_shift_attack(ciphertext, message_pp, L=500, test1_list=test_list):
             if words[i] not in test2_dict and (i + 1) != len(words):
                 bad = bad + 1
     # if there are more than 10 bad words do not use the message
-    if bad < 10:
+    if bad < 10 and len(words) >= 10:
         test1_list.append(message_pp)
     return min([(plaintext, compute_unique_shifts_with_insertion(ciphertext, plaintext, L)) for plaintext in test1_list], key=lambda x: x[1])[0]
